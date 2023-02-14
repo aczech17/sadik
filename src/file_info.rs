@@ -29,7 +29,10 @@ impl FileInfo
     {
         &self.name
     }
-
+    pub(crate) fn get_size(&self) -> &usize
+    {
+        &self.size
+    }
 }
 
 #[derive(Serialize, Deserialize)]

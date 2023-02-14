@@ -3,11 +3,11 @@ use std::io;
 use std::io::{Read, Write};
 use crate::file_info::{BUFSIZE, FileInfoVector};
 
-pub(crate) fn archive_files(file_info_vector: FileInfoVector, archive_name: &str) -> io::Result<()>
+pub(crate) fn archive_files(file_info_vector: FileInfoVector, archive_name: String) -> io::Result<()>
 {
     let mut archive_file = File::create(archive_name)?;
 
-    // write metada
+    // write metadata
     let meta_info = serde_json::to_string(&file_info_vector).unwrap();
     archive_file.write_all((&meta_info).as_ref()).unwrap();
 

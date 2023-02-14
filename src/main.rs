@@ -23,9 +23,10 @@ fn main()
             let file_info_vector = match FileInfoVector::new(&file_names)
             {
                 Ok(f) => f,
-                Err(_) =>
+                Err(e) =>
                 {
                     eprintln!("Could not find files.");
+                    eprintln!("{}", e.to_string());
                     return;
                 }
             };
@@ -44,9 +45,10 @@ fn main()
             match unarchive_files(archive_filename.clone())
             {
                 Ok(_) => {},
-                Err(_) =>
+                Err(e) =>
                 {
                     eprintln!("Could not unpack archive named: {}", archive_filename);
+                    eprintln!("{}", e.to_string());
                     return;
                 }
             }

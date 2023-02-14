@@ -40,15 +40,15 @@ pub(crate) struct FileInfoVector(pub(crate) Vec<FileInfo>);
 
 impl FileInfoVector
 {
-    pub(crate) fn new(filenames: &[String]) -> Self
+    pub(crate) fn new(filenames: &[String]) -> io::Result<Self>
     {
         let mut file_info_vector: Vec<FileInfo> = Vec::new();
         for filename in filenames
         {
-            let file_info = FileInfo::new(filename).unwrap();
+            let file_info = FileInfo::new(filename)?;
             file_info_vector.push(file_info);
         }
 
-        Self(file_info_vector)
+        Ok(Self(file_info_vector))
     }
 }

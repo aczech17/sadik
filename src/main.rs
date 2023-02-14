@@ -1,39 +1,59 @@
-use std::fs::File;
-use std::io::Read;
-use crate::file_info::{FileInfo, FileInfoVector};
+use crate::file_info::FileInfoVector;
 
 mod file_info;
 mod archive;
+mod unarchive;
+mod parse_args;
 
 use crate::archive::archive_files;
+use crate::unarchive::unarchive_files;
+use crate::parse_args::{parse_options, ProgramOptions};
 
 fn main()
 {
-    /*
-    let mut content: String = String::new();
-    let mut file = File::open("out").unwrap();
-    file.read_to_string(&mut content).unwrap();
-
-    //println!("{content}");
-    let s = format!("{}]", content.split("]").collect::<Vec<&str>>()[0]);
-
-    let file_info_vector: FileInfoVector = serde_json::from_str(&s).unwrap();
-
-    for file_info in file_info_vector.0
-    {
-        println!("{} {}", file_info.get_name(), file_info.get_size());
-    }
-    */
-
-    const USAGE: &str = "super archiwizator i dearchiwizator kurwo";
+    let usage = format!("Super archiwizator i dearchiwizator kurwo\n\
+    [-a [file names] [archive name]] | [-d [archive name]]");
 
     let args: Vec<String> = std::env::args().collect();
-    if args.len() < 2
-    {
-        eprintln!("{USAGE}");
-        return;
-    }
 
-    let file_info_vector = FileInfoVector::new(&args[1..]);
-    archive_files(file_info_vector, "out").unwrap();
+    match parse_options(args)
+    {
+        ProgramOptions::Archive { file_names, archive_filename } =>
+        {
+            let file_info_vector = match FileInfoVector::new(&file_names)
+            {
+                Ok(f) => f,
+                Err(_) =>
+                {
+                    eprintln!("Could not find files.");
+                    return;
+                }
+            };
+            match archive_files(file_info_vector, archive_filename)
+            {
+                Ok(_) => {},
+                Err(_) =>
+                {
+                    eprintln!("Could not archive files.");
+                    return;
+                }
+            }
+        }
+        ProgramOptions::Unarchive { archive_filename } =>
+        {
+            match unarchive_files(archive_filename.clone())
+            {
+                Ok(_) => {},
+                Err(_) =>
+                {
+                    eprintln!("Could not unpack archive named: {}", archive_filename);
+                    return;
+                }
+            }
+        }
+        ProgramOptions::Invalid =>
+        {
+            eprintln!("{}", usage);
+        }
+    }
 }

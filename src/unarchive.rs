@@ -1,7 +1,6 @@
 use std::fs::File;
 use std::{fs, io};
 use std::io::{ErrorKind, Read, Write};
-use std::process::exit;
 use crate::file_info::{FileInfo, BUFSIZE, FileTreeInfo, METADATA_DELIMITER};
 use std::string::String;
 
@@ -56,13 +55,8 @@ fn get_file_tree_info(archive_file: &mut File) -> io::Result<FileTreeInfo>
     {
         Ok(f) => f,
         Err(s) =>
-            {
-                eprintln!("Nie udało się sparsować metadanych.");
-                eprintln!("{}", header);
-                exit(1);
-                return Err(std::io::Error::new(ErrorKind::InvalidInput, s));
-            }
-        // ale koksztys
+            return Err(std::io::Error::new(ErrorKind::InvalidInput, s)),
+            // ale koksztys
     };
 
     Ok(file_tree_info)

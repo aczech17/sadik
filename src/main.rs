@@ -1,4 +1,8 @@
-use crate::file_info::FileInfoVector;
+use std::fs;
+use std::fs::{File, metadata};
+use std::io::Write;
+use serde::{Deserialize, Serialize};
+use crate::file_info::{FileInfo, FileTreeInfo};
 
 mod file_info;
 mod archive;
@@ -8,54 +12,52 @@ mod parse_args;
 use crate::archive::archive_files;
 use crate::unarchive::unarchive_files;
 use crate::parse_args::{parse_options, ProgramOptions};
+use walkdir::{DirEntry, WalkDir};
+
+
+fn get_pathnames_and_filenames(args: Vec<String>) -> (Vec<String>, Vec<String>)
+{
+    let mut pathnames = Vec::new();
+    let mut filenames = Vec::new();
+    for arg in args
+    {
+        for dir in WalkDir::new(arg)
+        {
+            let dir = dir.unwrap();
+            let path = dir.path().display().to_string();
+            if metadata(path.clone()).unwrap().is_dir()
+            {
+                pathnames.push(path);
+            }
+            else
+            {
+                filenames.push(path);
+            }
+        }
+    }
+
+    (pathnames, filenames)
+}
 
 fn main()
 {
-    let usage = format!("Super archiwizator i dearchiwizator kurwo\n\
-    [-a [file names] [archive name]] | [-d [archive name]]");
+    /*
+    let args = vec!
+    [
+        "r".to_string(),
+        "in1".to_string(),
+        "in2".to_string(),
+    ];
 
-    let args: Vec<String> = std::env::args().collect();
+    let (paths, files) = get_pathnames_and_filenames(args);
 
-    match parse_options(args)
-    {
-        ProgramOptions::Archive { file_names, archive_filename } =>
-        {
-            let file_info_vector = match FileInfoVector::new(&file_names)
-            {
-                Ok(f) => f,
-                Err(e) =>
-                {
-                    eprintln!("Could not find files.");
-                    eprintln!("{}", e.to_string());
-                    return;
-                }
-            };
-            match archive_files(file_info_vector, archive_filename)
-            {
-                Ok(_) => {},
-                Err(_) =>
-                {
-                    eprintln!("Could not archive files.");
-                    return;
-                }
-            }
-        }
-        ProgramOptions::Unarchive { archive_filename } =>
-        {
-            match unarchive_files(archive_filename.clone())
-            {
-                Ok(_) => {},
-                Err(e) =>
-                {
-                    eprintln!("Could not unpack archive named: {}", archive_filename);
-                    eprintln!("{}", e.to_string());
-                    return;
-                }
-            }
-        }
-        ProgramOptions::Invalid =>
-        {
-            eprintln!("{}", usage);
-        }
-    }
+    let info = FileTreeInfo::new(&paths[..], &files[..])
+        .expect("Nie udało się zrobić tree info");
+
+    archive_files(info, "out".to_string())
+        .expect("Nie udało się spakować");
+    */
+
+    unarchive_files("out".to_string())
+        .expect("Nie udało się rozpakować");
 }

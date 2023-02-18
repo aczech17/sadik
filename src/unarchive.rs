@@ -30,6 +30,34 @@ fn save_file(file_info: &FileInfo, archive_file: &mut File) -> io::Result<()>
     Ok(())
 }
 
+fn create_directory(dir_name: &str) -> Result<(), String>
+{
+    match fs::create_dir(dir_name)
+    {
+        Ok(_) => Ok(()),
+        Err(e) => match e.kind()
+        {
+
+            ErrorKind::AlreadyExists => Ok(()),
+            _ => return Err(e.to_string()),
+        }
+    }
+}
+
+fn create_superdirectories_and_directory(dir_name: &String) -> Result<(), String>
+{
+    let dir_names: Vec<&str> = dir_name.split("/").collect();
+    let mut current_dir = "".to_string();
+
+    for dir in dir_names
+    {
+        current_dir = current_dir + dir + "/";
+        create_directory(&current_dir)?;
+    }
+
+    Ok(())
+}
+
 fn get_file_tree_info(archive_file: &mut File) -> io::Result<FileTreeInfo>
 {
     let mut header_bytes: Vec<u8> = Vec::new();
@@ -62,7 +90,7 @@ fn get_file_tree_info(archive_file: &mut File) -> io::Result<FileTreeInfo>
     Ok(file_tree_info)
 }
 
-pub(crate) fn unarchive_files(archive_name: String) -> io::Result<()>
+pub(crate) fn unarchive_files(archive_name: String) -> Result<(), String>
 {
     let mut archive_file = File::open(archive_name)
         .expect("Could not open archive file");
@@ -74,8 +102,8 @@ pub(crate) fn unarchive_files(archive_name: String) -> io::Result<()>
 
     for dir_name in dir_names
     {
-        fs::create_dir(dir_name)
-            .expect(&*format!("Could not create directory {}", dir_name));
+        create_superdirectories_and_directory(dir_name)
+            .expect("create_superdirectories_and_directory");
     }
 
     for file_info in file_info_vector
